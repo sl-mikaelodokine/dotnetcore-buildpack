@@ -46,6 +46,8 @@ fi
 if [ -z ${PROJECT_NAME:-} ]; then
 	PROJECT_NAME=$(basename ${PROJECT_FILE%.*})
 fi
+
+
 if [ -n "$(cat $PROJECT_FILE | grep 'netcoreapp2.0')" ]; then
 	topic "WARNING"
 	echo "For netcoreapp2.0 use https://github.com/jincod/dotnetcore-buildpack#v2.1.200" | indent
@@ -53,10 +55,12 @@ if [ -n "$(cat $PROJECT_FILE | grep 'netcoreapp2.0')" ]; then
 fi
 export NUGET_PACKAGES="${CACHE_DIR}/nuget/cache"
 
-sed -i "s/NUGETSELOGERLOGIN/${NUGETSELOGERLOGIN}/g" ${BUILD_DIR}/nuget.heroku
-sed -i "s/NUGETSELOGERPASSWORD/${NUGETSELOGERPASSWORD}/g" ${BUILD_DIR}/nuget.heroku
-rm -f ${BUILD_DIR}/nuget.config
-mv ${BUILD_DIR}/nuget.heroku ${BUILD_DIR}/nuget.config
+export NUGET_PATH=$(dirname $(find . -maxdepth 5 -iname nuget.heroku | head -1))
+
+sed -i "s/NUGETSELOGERLOGIN/${NUGETSELOGERLOGIN}/g" ${NUGET_PATH}/nuget.heroku
+sed -i "s/NUGETSELOGERPASSWORD/${NUGETSELOGERPASSWORD}/g" ${NUGET_PATH}/nuget.heroku
+rm -f ${NUGET_PATH}/nuget.config
+mv ${NUGET_PATH}/nuget.heroku ${NUGET_PATH}/nuget.config
 
 echo "publish ${PROJECT_FILE} for ${BUILD_CONFIGURATION}"
 dotnet publish $PROJECT_FILE --output ${BUILD_DIR}/heroku_output --configuration ${BUILD_CONFIGURATION} --runtime linux-x64
